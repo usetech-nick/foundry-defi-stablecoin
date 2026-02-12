@@ -170,6 +170,7 @@ contract DSCEngine is ReentrancyGuard {
     function redeemCollateralForDsc(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountOfDscToBurn)
         external
         moreThanZero(amountCollateral)
+        moreThanZero(amountOfDscToBurn)
         isAllowedToken(tokenCollateralAddress)
     {
         _burnDsc(amountOfDscToBurn, msg.sender, msg.sender);
