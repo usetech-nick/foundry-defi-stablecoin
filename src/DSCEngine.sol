@@ -29,6 +29,7 @@ import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+import {OracleLib} from "./libraries/OracleLib.sol";
 
 /**
  * @title DSCEngine
@@ -61,6 +62,11 @@ contract DSCEngine is ReentrancyGuard {
     error DSCEngine__HealthFactorNotImproved();
     error DSCEngine__BurnAmountExceedsBalance();
     error DSCEngine__RedeemAmountExceedsCollateral();
+
+    /////////////////
+    //    Type   ////
+    /////////////////
+    using OracleLib for AggregatorV3Interface;
 
     ///////////////////////
     //  State Variables  //
@@ -345,7 +351,7 @@ contract DSCEngine is ReentrancyGuard {
         // $/ETH ETH?
         // $2000 / ETH, $1000 = 0.5 ETH
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
-        (, int256 price,,,) = priceFeed.latestRoundData();
+        (, int256 price,,,) = priceFeed.staleCheckLatestRoundData();
         return (usdAmountInWei * PRECISION) / (uint256(price) * ADDITIONAL_FEED_PRECISION);
     }
 
@@ -370,9 +376,9 @@ contract DSCEngine is ReentrancyGuard {
         return s_priceFeeds[token];
     }
 
-    // function getCollateralBalanceOfUser(address user, address token) public view returns (uint256 balance) {
-    //     return s_collateralDeposited[user][token];
-    // }
+    function getCollateralBalanceOfUser(address user, address token) public view returns (uint256 balance) {
+        return s_collateralDeposited[user][token];
+    }
 
     function getAccountInformation(address user)
         external
@@ -400,5 +406,9 @@ contract DSCEngine is ReentrancyGuard {
 
     function getMinHealthFactor() external pure returns (uint256) {
         return MIN_HEALTH_FACTOR;
+    }
+
+    function getCollateralTokens() external view returns (address[] memory) {
+        return s_colleteralTokens;
     }
 }
