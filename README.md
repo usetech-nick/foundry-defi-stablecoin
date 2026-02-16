@@ -2,6 +2,23 @@
 
 A decentralized, overcollateralized stablecoin system with algorithmic stability, oracle-based pricing, and automated liquidations.
 
+## Deployed Contracts (Sepolia Testnet)
+
+### DecentralizedStableCoin (DSC)
+
+- **Address**: `0xd12b6e24De84c67Fa34C2BdeE264fdb66cc9Ae45`
+- **Etherscan**: https://sepolia.etherscan.io/address/0xd12b6e24De84c67Fa34C2BdeE264fdb66cc9Ae45
+
+### DSCEngine
+
+- **Address**: `0x76c339DD1BDaeEeb1380C38B66a88b7Fb17921fD`
+- **Etherscan**: https://sepolia.etherscan.io/address/0x76c339DD1BDaeEeb1380C38B66a88b7Fb17921fD
+
+### Supported Collateral
+
+- **WETH**: `0x7b79995e5f793a07Bc00c21412e50Ecae098E7f9` (Sepolia)
+- **WBTC**: `0x92f3B59a79bFf5dc60c0d59eA13a44D082B2bdFC` (Sepolia)
+
 ## Overview
 
 This protocol implements a USD-pegged stablecoin (DSC) backed by cryptocurrency collateral (WETH & WBTC). Users can deposit collateral to mint stablecoins while maintaining a healthy collateralization ratio. The system features automated liquidation mechanisms to ensure protocol solvency.
@@ -15,6 +32,7 @@ This protocol implements a USD-pegged stablecoin (DSC) backed by cryptocurrency 
 - **Algorithmic Stability**: No governance, fully algorithmic peg maintenance
 
 ## Architecture
+
 ```
 ┌─────────────────────────────────────────────────┐
 │                                                 │
@@ -45,7 +63,9 @@ This protocol implements a USD-pegged stablecoin (DSC) backed by cryptocurrency 
 ## Smart Contracts
 
 ### DSCEngine.sol
+
 The core protocol logic handling:
+
 - Collateral deposits and withdrawals
 - DSC minting and burning
 - Health factor calculations
@@ -53,13 +73,17 @@ The core protocol logic handling:
 - Position management
 
 ### DecentralizedStableCoin.sol
+
 ERC20 implementation of the stablecoin with:
+
 - Mintable/burnable by DSCEngine only
 - Standard ERC20 functionality
 - Access control for minting/burning
 
 ### OracleLib.sol
+
 Library for Chainlink oracle interactions:
+
 - Stale price detection (3-hour timeout)
 - USD value conversions
 - Price feed validation
@@ -72,6 +96,7 @@ Library for Chainlink oracle interactions:
 - [Git](https://git-scm.com/downloads)
 
 ### Installation
+
 ```bash
 git clone https://github.com/yourusername/foundry-defi-stablecoin
 cd foundry-defi-stablecoin
@@ -79,11 +104,13 @@ forge install
 ```
 
 ### Build
+
 ```bash
 forge build
 ```
 
 ### Test
+
 ```bash
 # Run all tests
 forge test
@@ -103,13 +130,16 @@ forge coverage
 This project implements a comprehensive testing approach:
 
 ### Test Coverage
+
 - **86.15% line coverage**
 - **88.44% statement coverage**
 - **23 unit tests** covering all core functionality
 - **Handler-based invariant testing** with 16,384+ fuzz calls
 
 ### Unit Tests (`test/DSCEngineTest.t.sol`)
+
 Comprehensive tests covering:
+
 - Collateral deposits and redemptions
 - DSC minting and burning
 - Health factor calculations
@@ -117,13 +147,17 @@ Comprehensive tests covering:
 - Edge cases and failure modes
 
 ### Invariant Tests (`test/fuzz/Invariants.t.sol`)
+
 Critical protocol properties verified:
+
 - **Protocol Overcollateralization**: `totalCollateralValue >= totalDebtValue`
 - **Getter Functions**: All view functions never revert
 - **Handler-guided fuzzing**: Realistic state transitions only
 
 ### Handler (`test/fuzz/Handler.t.sol`)
+
 Guides the fuzzer through valid protocol interactions:
+
 - Deposits only approved collateral
 - Mints DSC respecting health factors
 - Redeems collateral within safe limits
@@ -132,6 +166,7 @@ Guides the fuzzer through valid protocol interactions:
 ## Core Mechanics
 
 ### Depositing Collateral & Minting DSC
+
 ```solidity
 // 1. Approve collateral token
 IERC20(weth).approve(address(dscEngine), amount);
@@ -147,6 +182,7 @@ dscEngine.depositCollateralAndMintDsc(
 ### Health Factor
 
 Health factor determines if a position is safe from liquidation:
+
 ```
 healthFactor = (collateralValue * LIQUIDATION_THRESHOLD) / totalDscMinted
 ```
@@ -158,6 +194,7 @@ healthFactor = (collateralValue * LIQUIDATION_THRESHOLD) / totalDscMinted
 ### Liquidation
 
 Anyone can liquidate undercollateralized positions:
+
 ```solidity
 dscEngine.liquidate(
     collateralAddress,
@@ -167,6 +204,7 @@ dscEngine.liquidate(
 ```
 
 Liquidators receive:
+
 - The debt amount in collateral
 - 10% liquidation bonus
 - Helps maintain protocol solvency
@@ -174,6 +212,7 @@ Liquidators receive:
 ## Deployment
 
 ### Local Deployment
+
 ```bash
 # Start local Anvil chain
 anvil
@@ -183,6 +222,7 @@ forge script script/DeployDSC.s.sol --rpc-url http://localhost:8545 --broadcast
 ```
 
 ### Sepolia Testnet
+
 ```bash
 forge script script/DeployDSC.s.sol \
     --rpc-url $SEPOLIA_RPC_URL \
@@ -195,6 +235,7 @@ forge script script/DeployDSC.s.sol \
 ## Security Considerations
 
 ### Implemented Protections
+
 - ✅ Reentrancy guards on state-changing functions
 - ✅ Oracle staleness checks (3-hour timeout)
 - ✅ Health factor enforcement before all operations
@@ -203,29 +244,34 @@ forge script script/DeployDSC.s.sol \
 - ✅ Overcollateralization requirements
 
 ### Known Limitations
+
 - Oracle dependency (relies on Chainlink price feeds)
 - Liquidation relies on external actors (MEV risk)
 - No governance mechanism (fully algorithmic)
 - Limited to two collateral types (WETH, WBTC)
 
 ### Audit Status
+
 ⚠️ **This protocol has NOT been audited. Use at your own risk.**
 
 ## Technical Details
 
 ### Technologies Used
+
 - **Solidity ^0.8.19**: Smart contract language
 - **Foundry**: Development framework and testing
 - **Chainlink**: Decentralized oracle network
 - **OpenZeppelin**: Battle-tested contract libraries
 
 ### Gas Optimization
+
 - Efficient storage patterns
 - Minimal external calls
 - Batch operations where possible
 - View functions for off-chain calculations
 
 ## Project Structure
+
 ```
 foundry-defi-stablecoin/
 ├── src/
@@ -249,6 +295,7 @@ foundry-defi-stablecoin/
 ## Learning Resources
 
 This project was built as part of learning DeFi protocol development. Key concepts implemented:
+
 - Overcollateralized stablecoin mechanics
 - Oracle integration and staleness checks
 - Liquidation systems and incentives
